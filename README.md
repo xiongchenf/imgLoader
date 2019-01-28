@@ -7,14 +7,14 @@
 1、登录微信小程序管理后台配置`downloadFile 合法域名`。
 
 2、在需要使用图片预加载的页面写入:
-<pre>
+```javascript
 const ImageLoader = require('path_to_file/ImageLoader.min.js'); // 加载器
 const ImageSource = require('path_to_file/imageSource.js'); //资源文件
-</pre>
+````
 
 3、指定待加载资源路径
 
-<pre>
+```javascript
 // imageSource.js 示例
 // BASE是图片的来源,https://example.com必须配置在downloadFile 合法域名中
 module.exports = { 
@@ -48,10 +48,11 @@ module.exports = {
       }
     }
 }
-</pre>
+```
 
 4、创建加载器对象:
-<pre>new ImageLoader({
+```javascript
+new ImageLoader({
   base: ImageSource.BASE,
   source: [ImageSource.single1], // 待加载的资源，预加载single1
   // source: [ImageSource.imageList, ImageSource.pages.home] // 预加载imageList和pages下home页面要使用的资源
@@ -64,20 +65,19 @@ module.exports = {
     console.log(res);
   }
 });
-</pre>
+```
 
 5、使用资源示例
-  wxml:
- 
+wxml:
+
 `<template wx:for='{{ImageSource.imageList}}'><imgs src='{{item}}'/></template>`
-   
-  
-  js:
-  <pre>
-    Page({
-      data: {
-        ImageSource: ImageSource 
-      }
-    })
-    </pre>
-</pre>
+
+js:
+ 
+```javascript
+Page({
+  data: {
+    ImageSource: ImageSource 
+  }
+});
+```
