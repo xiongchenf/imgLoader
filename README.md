@@ -70,14 +70,15 @@ new ImageLoader({
 5、使用资源示例
 wxml:
 
-`<template wx:for='{{ImageSource.imageList}}'><imgs src='{{item}}'/></template>`
+`<template wx:for='{{ImageSource.imageList}}'><imgs src='{{`${base}${item}`}}'/></template>`
 
 js:
  
 ```javascript
 Page({
   data: {
-    ImageSource: ImageSource 
+    ImageSource: ImageSource，
+    base: ImageSource.base
   }
 });
 ```
