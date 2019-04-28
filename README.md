@@ -75,6 +75,7 @@ wxml:
 js:
  
 ```javascript
+const ImageSource = require("path_to_file/imageSource.js"); 
 Page({
   data: {
     ImageSource: ImageSource，
