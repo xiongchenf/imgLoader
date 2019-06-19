@@ -1,4 +1,6 @@
 <!--index.wxml-->
 <view class="container">
-  <image src='{{src}}'></image>
+  <block wx:for="item in source" wx:key="item.src">
+    {{item.src}}
+  </block>
 </view>

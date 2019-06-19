@@ -1,113 +1,165 @@
-let base = 0;
-let Img = function(src) {
-  this.src = src;
-  this.status = false;
-  this.fail = false;
-}
+/*!
+ * ImageLoader.js v1.0.0
+ * (c) 2019 bear.xiong
+ * Released under the MIT License.
+ */
+(function(globel, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+        typeof define === 'function' && define.amd ? define(factory) :
+        (global.ImageLoader = factory());
+}(this, (function() {
+    'use strict';
 
-let loop = (o, res) => {
-  let tem = Object.keys(o);
-  tem.map(v => {
-    if (typeof o[v] === 'object') {
-      loop(o[v], res);
-    } else {
-      if(v === 'BASE') {
-        base = o[v];
-      } else {
-        res.push(o[v]);
-      }
+    function Img({
+        src,
+        status = false
+    }) {
+        this.src = src;
+        this.status = status;
     }
-  });
-}
-
-function ImageLoader(obj) {
-  let arr = [];
-  if (obj.loading) {
-    this.loadingcallback = obj.loading;
-  }
-  if (obj.loaded) {
-    this.loadedcallback = obj.loaded;
-  }
-  if (obj.base) {
-    base = obj.base
-  }
-  this.load = () => {
-    this.start = (new Date).getTime();
-    arr.map((v) => {
-      let src = base ? base + v.src : v.src;
-      wx.getImageInfo({
-        src: src,
-        success: res => {
-          v.status = true;
-        },
-        fail: err => {
-          v.fail = true;
+    /**
+     * ImageLoader Constructor
+     */
+    function ImageLoader(options) {
+        if ("development" !== 'production' &&
+            !(this instanceof ImageLoader)
+        ) {
+            console.error('ImageLoader is a constructor and should be called with the `new` keyword');
         }
-      })
-    });
-    let timer = setInterval(() => {
-      let status = this.isLoaded();
-      if (status) {
-        clearTimeout(timer);
-      }
-    }, 200);
-
-    setTimeout(() => {
-      clearTimeout(timer);
-    }, 60000);
-  };
-
-  this.insert = (item) => {
-    arr.push(item);
-  };
-
-  this.init = (o) => {
-    let res = [];
-    loop(o, res);
-    console.log(res)
-    res.map((v) => {
-      this.insert(new Img(v));
-    });
-    this.load();
-  };
-  if (obj.source) {
-    this.init(obj.source);
-  }
-  this.isLoaded = () => {
-    let status = true,
-      count = 0,
-      fail = 0;
-    arr.map((v) => {
-      if (!v.status) {
-        status = false;
-      } else {
-        count += 1;
-      }
-      if(v.fail) {
-        status = true;
-        fail += 1;
-      }
-    });
-    if(status) {
-      if(this.loadedcallback) {
-        this.loadedcallback({
-          status: true,
-          timecost: (new Date).getTime() - this.start,
-          success: count,
-          fail: fail,
-          totalcount: arr.length
-        })
-      }
-    } else {
-      if(this.loadingcallback) {
-        this.loadingcallback({
-          status: false,
-          percent: count / arr.length
-        });
-      }
+        this._init(options);
     }
-    return status;
-  };
-}
+    /**
+     * init options.
+     */
+    ImageLoader.prototype._init = function({
+        base,
+        source,
+        loading,
+        loaded
+    }) {
+        if (typeof base !== undefined) {
+            this.base = base;
+        } else {
+            console.error('base is a required');
+            return;
+        }
+        this.source = source;
+        this.loading = loading;
+        this.loaded = loaded;
+        this.time = 0;
+        this.total = 0;
+        let successCount = 0;
+        let failCount = 0;
+        Object.defineProperty(this, 'successCount', {
+            get() {
+                return successCount
+            },
+            set(value) {
+                this.sourceLoaded();
+                successCount = value;
+            }
+        });
+        Object.defineProperty(this, 'failCount', {
+            get() {
+                return failCount
+            },
+            set(value) {
+                this.sourceLoaded();
+                failCount = value;
+            }
+        });
+        this.readyLoad = this.loadSource();
+    }
 
-module.exports = ImageLoader
+    // All loaded.
+    ImageLoader.prototype.sourceLoaded = function() {
+        if (this.successCount + this.failCount === this.total) {
+            this.loaded({
+                status: this.failCount === 0,
+                timecost: +new Date() - this.start,
+                success: this.successCount,
+                fail: this.failCount,
+                totalcount: this.total,
+                sourceLoaded: this.readyLoad
+            });
+        } else {
+            this.loading({
+                status: false,
+                percent: this.successCount / this.total
+            });
+        }
+    }
+
+    // Initialize soure, add base.
+    ImageLoader.prototype.loadSource = function() {
+        // copy source data
+        let sourceCopy = [];
+        try {
+            sourceCopy = JSON.parse(JSON.stringify(this.source))
+        } catch (e) {
+            sourceCopy = [];
+        }
+        // Recursive whole source resource.
+        const loop = item => {
+            return item.map(source => {
+                return typeCheck(source);
+            });
+        }
+        // Judgment result type.
+        const typeCheck = source => {
+            let img = new Img({
+                src: "",
+                status: false
+            });
+            if (typeof source === 'string') {
+                img.src = `${this.base}${source}`;
+                this.start = +new Date();
+                this.total = ++this.total;
+                // using wxapi load pictures.
+                wx.getImageInfo({
+                    src: img.src,
+                    success: res => {
+                        img.status = true;
+                        this.successCount = ++this.successCount;
+                    },
+                    fail: err => {
+                        img.fail = true;
+                        this.failCount = ++this.failCount;
+                    }
+                });
+                return img;
+            } else if (typeof source === 'object') {
+                if (Array.isArray(source)) {
+                    return loop(source);
+                } else {
+                    for (let key in source) {
+                        if (source.hasOwnProperty(key)) {
+                            source[key] = typeCheck(source[key]);
+                        }
+                    }
+                    return source;
+                }
+            } else {
+                // If not an array, an object, or direct address, ignore it directly.
+                return null;
+            }
+        }
+        // check if object, loop source
+        if (typeof sourceCopy === 'object') {
+            if (Array.isArray(sourceCopy)) {
+                return loop(sourceCopy);
+            } else {
+                return loop([sourceCopy]);
+            }
+        } else {
+            let img = new Img({
+                src: `${this.base}${sourceCopy}`,
+                status: false,
+            });
+            // Support source as a direct string.
+            return img;
+        }
+    }
+
+    return ImageLoader;
+})));
