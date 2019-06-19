@@ -52,26 +52,56 @@ module.exports = {
 
 4、创建加载器对象:
 ```javascript
-new ImageLoader({
-    base: ImageSource.BASE,
-    source: ImageSource.home,
-    loading: res => {
-        // 可以做进度条
-        console.log(res);
+// 示例在app.js内使用
+App({
+    onLaunch: function() {
+        new ImageLoader({
+            base: ImageSource.BASE,
+            source: ImageSource.home,
+            loading: res => {
+                // 可以做进度条
+                console.log(res);
+            },
+            loaded: res => {
+		// res是加载器执行完毕的回调，返回结果如下：
+		//  {
+                //	status: true, // 全部加载完成
+                //	timecost: 100, // 整个加载过程耗时
+                //	success: 9, // 加载成功的数量
+                //	fail: 1, // 加载失败的数量
+                //	totalcount: 10, // 总共触发加载的图片数量
+                //	sourceLoaded: { // 加载成功后的结果对象，可直接在其他页面内使用
+		//	    home: {
+		//		status: true, // 此图片的加载状态
+		//		src: "https://example.com/pathtofile/example.png"
+		//	    },
+		// 	    pages: [{src: false, status: "/example.jpee"}]
+		//		...
+		//	} 
+            	//  }
+                // 可以加载完毕动画
+                const {
+                    status,
+                    sourceLoaded
+                } = res;             
+		// 把图片加载器返回的sourceLoaded挂载到app对象上，则可以在全局任何页面内引用。
+                this.globalData.sourceLoaded = sourceLoaded;
+		// 比如示例是在首页渲染时需要使用sourceLoaded对象，可以这样写：
+		// 在首页的onLoad内写(因为首页的onload可能先于加载器回调)
+		// app.sourceLoaded = (sourceLoaded) => {
+		//    this.setData({ 
+		//        sourceLoaded: sourceLoaded 
+		//    })
+		// }
+                this.sourceLoaded && this.sourceLoaded(sourceLoaded);               
+            }
+        });
     },
-    loaded: res => {
-        // 可以加载完毕动画
-        const {
-            status,
-            sourceLoaded
-        } = res;
-        if (status) {
-            // 返回一个已加载的图片资源对象，结构与source结构一致。
-            // 包含图片的加载状态与可直接引用地址
-            this.sourceLoaded = sourceLoaded;
-        }
+    // appjs的global对象
+    globalData: {
+        userInfo: null
     }
-});
+})
 ```
 
 5、使用资源示例
