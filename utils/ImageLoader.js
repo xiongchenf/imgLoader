@@ -68,6 +68,7 @@
                 failCount = value;
             }
         });
+        this.start = +new Date();
         this.readyLoad = this.loadSource();
     }
 
@@ -113,7 +114,6 @@
             });
             if (typeof source === 'string') {
                 img.src = `${this.base}${source}`;
-                this.start = +new Date();
                 this.total = ++this.total;
                 // using wxapi load pictures.
                 wx.getImageInfo({
