@@ -53,33 +53,28 @@ module.exports = {
 4、创建加载器对象:
 ```javascript
 new ImageLoader({
-  base: ImageSource.BASE,
-  source: [ImageSource.single1], // 待加载的资源，预加载single1
-  // source: [ImageSource.imageList, ImageSource.pages.home] // 预加载imageList和pages下home页面要使用的资源
-  loading: res => {
-    // 可以做进度条
-    console.log(res);
-  },
-  loaded: res => {
-    // 可以加载完毕动画
-    console.log(res);
-  }
+    base: ImageSource.BASE,
+    source: ImageSource.home,
+    loading: res => {
+        // 可以做进度条
+        console.log(res);
+    },
+    loaded: res => {
+        // 可以加载完毕动画
+        const {
+            status,
+            sourceLoaded
+        } = res;
+        if (status) {
+            // 返回一个已加载的图片资源对象，结构与source结构一致。
+            // 包含图片的加载状态与可直接引用地址
+            this.sourceLoaded = sourceLoaded;
+        }
+    }
 });
 ```
 
 5、使用资源示例
 wxml:
 
-`<template wx:for='{{ImageSource.imageList}}'><imgs src='{{base +'/'+ item }}'/></template>`
-
-js:
- 
-```javascript
-const ImageSource = require("path_to_file/imageSource.js"); 
-Page({
-  data: {
-    ImageSource: ImageSource，
-    base: ImageSource.base
-  }
-});
-```
+`<imgs src='{{sourceLoaded[0].home.poster.src}}' />`
