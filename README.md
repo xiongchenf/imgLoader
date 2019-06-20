@@ -56,17 +56,19 @@ module.exports = {
 App({
     onLaunch: function() {
         new ImageLoader({
+	    // base是必需配置的参数
             base: ImageSource.BASE,
-            source: ImageSource.home,
+	    // source的value可以是 直接的字符串、或者一个图片资源数组、或者一组对象，对象内又可以嵌套数组等
+            source: [ImageSource.home, ImageSource.pages],
             loading: res => {
-                // 可以做进度条
+                // // 进度回调，每加载完成一张图片（成功/失败）都会触发，此处可以做进度条
                 console.log(res);
             },
             loaded: res => {
-		// res是加载器执行完毕的回调，返回结果如下：
+		// res是加载器执行完毕的回调信息，返回结果如下：
 		//  {
                 //	status: true, // 全部加载完成
-                //	timecost: 100, // 整个加载过程耗时
+                //	timecost: 100, // 整个加载过程耗时单位ms
                 //	success: 9, // 加载成功的数量
                 //	fail: 1, // 加载失败的数量
                 //	totalcount: 10, // 总共触发加载的图片数量
