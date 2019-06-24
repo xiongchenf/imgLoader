@@ -76,7 +76,7 @@
     ImageLoader.prototype.sourceLoaded = function() {
         if (this.successCount + this.failCount === this.total) {
             this.loaded({
-                status: this.failCount === 0,
+                status: true,
                 timecost: +new Date() - this.start,
                 success: this.successCount,
                 fail: this.failCount,

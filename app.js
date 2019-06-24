@@ -5,7 +5,7 @@ App({
     onLaunch: function() {
         new ImageLoader({
             base: ImageSource.BASE,
-            source: ImageSource.home,
+            source: [ImageSource.home],
             loading: res => {
                 // 可以做进度条
                 console.log(res);
